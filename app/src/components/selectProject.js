@@ -5,7 +5,7 @@ import api from "../services/api";
 // eslint-disable-next-line react/display-name
 export default ({ value, active = true, onChange }) => {
   const [projects, setProjects] = useState([]);
-  
+
   useEffect(() => {
     (async () => {
       let str = ``;

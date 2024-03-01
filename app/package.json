@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "webpack serve --port 8082 --mode development --config webpack.dev.config.js --progress --liveReload --open --hot --inline",
     "start": "npm run build && node server/index.js",
+    "lint": "eslint src",
     "build": "webpack"
   },
   "devDependencies": {
