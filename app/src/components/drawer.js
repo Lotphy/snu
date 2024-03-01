@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from 'react';
 import { NavLink } from "react-router-dom";
 import { ActivitiesIcon, HomeIcon, PeopleIcon, ProjectsIcon } from "../assets/Icons";
 
@@ -7,23 +7,27 @@ const Drawer = () => {
 };
 
 const DrawerDesktop = () => {
+  const [drawerIsVisible, setDrawerIsVisible] = useState(false);
+
+  const toggleDrawer = () => {
+    setDrawerIsVisible(!drawerIsVisible);
+  };
+
   return (
     <div className="flex-shrink-0 overflow-y-auto">
-      <ul className={`list-none px-3 z-10 border-r border-[#a0a6b124] space-y-2 translate-x-0 duration-200`}>
-        <Section title="Général">
-          <Link to="/" title="Home" Icon={HomeIcon} />
-          <Link to="/project" title="Projects" Icon={ProjectsIcon} />
-          <Link to="/activity" title="Activities" Icon={ActivitiesIcon} />
-          <Link to="/user" title="People" Icon={PeopleIcon} />
-        </Section>
-
-        <div className="h-10" />
-      </ul>
+      <Section title={drawerIsVisible ? "Hide menu" : "Show menu"} toggleDrawer={toggleDrawer}>
+        <ul className={`list-none px-3 z-10 border-r border-[#a0a6b124] space-y-2 translate-x-0 duration-500 transition-all ${drawerIsVisible ? "w-100" : "w-10/12"} `}>
+          <Link to="/" title="Home" Icon={HomeIcon} displayLabel={drawerIsVisible} />
+          <Link to="/project" title="Projects" Icon={ProjectsIcon} displayLabel={drawerIsVisible} />
+          <Link to="/activity" title="Activities" Icon={ActivitiesIcon} displayLabel={drawerIsVisible} />
+          <Link to="/user" title="People" Icon={PeopleIcon} displayLabel={drawerIsVisible} />
+        </ul>
+      </Section>
     </div>
   );
 };
 
-const Link = ({ Icon, title, to, onClick = () => {} }) => {
+const Link = ({ Icon, title, to, displayLabel, onClick = () => {} }) => {
   return (
     <li>
       <NavLink
@@ -34,18 +38,17 @@ const Link = ({ Icon, title, to, onClick = () => {} }) => {
         to={to}
         activeClassName="bg-[#0560FD] !text-[#FFFFFF] !fill-[#FFFFFF]">
         <Icon />
-        <span>{title}</span>
+        {displayLabel && <span>{title}</span>}
       </NavLink>
     </li>
   );
 };
 
-const Section = ({ children, title }) => {
+const Section = ({ children, title, toggleDrawer }) => {
   return (
     <div>
-      <h1
-        className="flex gap-1 items-center uppercase text-[10px] text-gray-400 tracking-wide font-semibold mt-4 cursor-pointer hover:underline mb-2"
-        onClick={() => setOpen((o) => !o)}>
+      <h1 className="flex gap-1 items-center uppercase text-[14px] text-gray-400 tracking-wide font-semibold mt-4 cursor-pointer hover:underline mb-2 px-3"
+        onClick={toggleDrawer}>
         {title}
       </h1>
 
