@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom";
 import Loader from "../../components/loader";
 import LoadingButton from "../../components/loadingButton";
 import api from "../../services/api";
+import { useSelector } from 'react-redux';
 
 const NewList = () => {
   const [users, setUsers] = useState(null);
@@ -13,6 +14,8 @@ const NewList = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [usersFiltered, setUsersFiltered] = useState(null);
   const [filter, setFilter] = useState({ status: "active", availability: "", search: "" });
+
+  const user = useSelector((state) => state.Auth.user);
 
   useEffect(() => {
     (async () => {
@@ -102,7 +105,7 @@ const NewList = () => {
         <div className="overflow-x-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6 gap-5 ">
             {usersFiltered.map((hit, idx) => {
-              return <UserCard key={hit._id} idx={idx} hit={hit} projects={projects} updateSelectedUsers={updateSelectedUsers} />;
+              return <UserCard key={hit._id} idx={idx} connectedUser={user} hit={hit} projects={projects} updateSelectedUsers={updateSelectedUsers} />;
             })}
           </div>
         </div>
@@ -137,7 +140,6 @@ const Create = () => {
                   values.status = "active";
                   values.availability = "not available";
                   values.role = "ADMIN";
-                  console.log(values)
                   const res = await api.post("/user", values);
                   if (!res.ok) throw res;
                   toast.success("Created!");
@@ -261,7 +263,7 @@ const FilterStatus = ({ filter, setFilter }) => {
   );
 };
 
-const UserCard = ({ hit, projects, updateSelectedUsers }) => {
+const UserCard = ({ connectedUser, hit, projects, updateSelectedUsers }) => {
   const history = useHistory();
 
   return (
@@ -284,7 +286,9 @@ const UserCard = ({ hit, projects, updateSelectedUsers }) => {
           </div>
         </div>
         <div className="absolute right-6 z-20">
-          <input type="checkbox" id={hit._id} onChange={updateSelectedUsers} />
+          {connectedUser._id !== hit._id &&
+            <input type="checkbox" id={hit._id} onChange={updateSelectedUsers} />
+          }
         </div>
       </div>
       {/* infos */}
