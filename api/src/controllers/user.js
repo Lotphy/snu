@@ -97,4 +97,20 @@ router.delete("/:id", passport.authenticate("user", { session: false }), async (
   }
 });
 
+router.delete("/", passport.authenticate("user", { session: false }), async (req, res) => {
+  try {
+    const userIds = req.body.userIds;
+    if (!userIds || userIds.length === 0) {
+      return res.status(400).send({ ok: false, error: "User IDs array is required." });
+    }
+    for (const id of userIds) {
+      await UserObject.findOneAndRemove({ _id: id });
+    }
+    res.status(200).send({ ok: true });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ ok: false, code: SERVER_ERROR, error });
+  }
+});
+
 module.exports = router;
