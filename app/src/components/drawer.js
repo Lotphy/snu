@@ -32,7 +32,7 @@ const Link = ({ Icon, title, to, displayLabel, onClick = () => {} }) => {
     <li>
       <NavLink
         onClick={onClick}
-        exact
+        exact={to === "/"}
         style={{ textDecoration: "none" }}
         className="px-4 py-3 w-full h-11 flex gap-3 items-center rounded-xl text-[#676D7C] text-base hover:text-[#0560FD] fill-[#676D7C] hover:fill-[#0560FD]"
         to={to}
