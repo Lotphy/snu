@@ -7,7 +7,7 @@ const Drawer = () => {
 };
 
 const DrawerDesktop = () => {
-  const [drawerIsVisible, setDrawerIsVisible] = useState(false);
+  const [drawerIsVisible, setDrawerIsVisible] = useState(true);
 
   const toggleDrawer = () => {
     setDrawerIsVisible(!drawerIsVisible);
