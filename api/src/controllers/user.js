@@ -103,9 +103,11 @@ router.delete("/", passport.authenticate("user", { session: false }), async (req
     if (!userIds || userIds.length === 0) {
       return res.status(400).send({ ok: false, error: "User IDs array is required." });
     }
+    const deletionPromises = [];
     for (const id of userIds) {
-      await UserObject.findOneAndRemove({ _id: id });
+      deletionPromises.push(UserObject.findOneAndRemove({ _id: id }));
     }
+    await Promise.allSettled(deletionPromises);
     res.status(200).send({ ok: true });
   } catch (error) {
     console.log(error);

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { IoIosAt, IoIosLink } from "react-icons/io";
 import { useHistory, useParams } from "react-router-dom";
 
-import { getDaysInMonth } from "./utils";
+import { getDaysInMonth } from "../../utils";
 
 import Loader from "../../components/loader";
 import api from "../../services/api";
