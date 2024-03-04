@@ -6,10 +6,12 @@ import { useHistory, useParams } from "react-router-dom";
 import Loader from "../../components/loader";
 import LoadingButton from "../../components/loadingButton";
 import api from "../../services/api";
+import { useSelector } from 'react-redux';
 
 export default () => {
   const [user, setUser] = useState(null);
   const { id } = useParams();
+
   useEffect(() => {
     (async () => {
       const response = await api.get(`/user/${id}`);
@@ -30,6 +32,7 @@ export default () => {
 
 const Detail = ({ user }) => {
   const history = useHistory();
+  const connectedUser = useSelector((state) => state.Auth.user);
 
   async function deleteData() {
     const confirm = window.confirm("Are you sure ?");
@@ -44,6 +47,7 @@ const Detail = ({ user }) => {
       initialValues={user}
       onSubmit={async (values) => {
         try {
+          console.log(values);
           await api.put(`/user/${user._id}`, values);
           toast.success("Updated!");
         } catch (e) {
@@ -60,7 +64,6 @@ const Detail = ({ user }) => {
                 <input
                   className="projectsInput text-[14px] font-normal text-[#212325] bg-[#F9FBFD] rounded-[10px]"
                   name="name"
-                  disabled
                   value={values.name}
                   onChange={handleChange}
                 />
@@ -132,12 +135,14 @@ const Detail = ({ user }) => {
             </div>
 
             <div className="flex  mt-2">
-              <LoadingButton className="bg-[#0560FD] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px]" loading={isSubmitting} onChange={handleSubmit}>
+              <LoadingButton className="bg-[#0560FD] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px]" loading={isSubmitting} onClick={handleSubmit}>
                 Update
               </LoadingButton>
-              <button className="ml-[10px] bg-[#F43F5E] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px]" onClick={deleteData}>
-                Delete
-              </button>
+              {connectedUser._id !== user._id && (
+                <button className="ml-[10px] bg-[#F43F5E] text-[16px] font-medium text-[#FFFFFF] py-[12px] px-[22px] rounded-[10px]" onClick={deleteData}>
+                  Delete
+                </button>
+              )}
             </div>
           </React.Fragment>
         );

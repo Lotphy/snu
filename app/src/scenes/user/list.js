@@ -5,12 +5,17 @@ import { useHistory } from "react-router-dom";
 import Loader from "../../components/loader";
 import LoadingButton from "../../components/loadingButton";
 import api from "../../services/api";
+import { useSelector } from 'react-redux';
 
 const NewList = () => {
   const [users, setUsers] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [bulkAction, setBulkAction] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [usersFiltered, setUsersFiltered] = useState(null);
   const [filter, setFilter] = useState({ status: "active", availability: "", search: "" });
+
+  const user = useSelector((state) => state.Auth.user);
 
   useEffect(() => {
     (async () => {
@@ -20,10 +25,31 @@ const NewList = () => {
     getProjects();
   }, []);
 
+  const updateSelectedUsers = (e) => {
+    const { checked, id } = e.target;
+    if (checked && !selectedUsers.includes(id)) {
+      setSelectedUsers([...selectedUsers, id]);
+    }
+    if (!checked) {
+      setSelectedUsers(selectedUsers.filter((item) => item !== id));
+    }
+  };
+
   async function getProjects() {
     const res = await api.get("/project");
     setProjects(res.data);
   }
+
+  const handleBulkAction = async () => {
+    try {
+      await api.remove("/user", { userIds: selectedUsers });
+      toast.success("Users successfully removed!");
+      const { data } = await api.get("/user");
+      setUsers(data);
+    } catch (e) {
+      toast.error("An error occurred, please retry later.");
+    }
+  };
 
   useEffect(() => {
     if (!users) return;
@@ -32,7 +58,7 @@ const NewList = () => {
         .filter((u) => !filter?.status || u.status === filter?.status)
         .filter((u) => !filter?.contract || u.contract === filter?.contract)
         .filter((u) => !filter?.availability || u.availability === filter?.availability)
-        .filter((u) => !filter?.search || u.name.toLowerCase().includes(filter?.search.toLowerCase())),
+        .filter((u) => !filter?.search || u.name?.toLowerCase().includes(filter?.search?.toLowerCase())),
     );
   }, [users, filter]);
 
@@ -73,10 +99,13 @@ const NewList = () => {
           </div>
           <Create />
         </div>
+
+        <SelectBulkAction bulkAction={bulkAction} setBulkAction={setBulkAction} selectedUsers={selectedUsers} applyBulkAction={handleBulkAction} />
+
         <div className="overflow-x-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6 gap-5 ">
             {usersFiltered.map((hit, idx) => {
-              return <UserCard key={hit._id} idx={idx} hit={hit} projects={projects} />;
+              return <UserCard key={hit._id} idx={idx} connectedUser={user} hit={hit} projects={projects} updateSelectedUsers={updateSelectedUsers} />;
             })}
           </div>
         </div>
@@ -128,7 +157,7 @@ const Create = () => {
                     <div className="flex justify-between flex-wrap">
                       <div className="w-full md:w-[48%] mt-2">
                         <div className="text-[14px] text-[#212325] font-medium	">Name</div>
-                        <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="username" value={values.username} onChange={handleChange} />
+                        <input className="projectsInput text-[14px] font-normal text-[#212325] rounded-[10px]" name="name" value={values.name} onChange={handleChange} />
                       </div>
                       <div className="w-full md:w-[48%] mt-2">
                         <div className="text-[14px] text-[#212325] font-medium	">Email</div>
@@ -157,6 +186,30 @@ const Create = () => {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+};
+
+const SelectBulkAction = ({ bulkAction, setBulkAction, selectedUsers, applyBulkAction }) => {
+  return (
+    <div className="flex">
+      <select
+        className="w-[180px] bg-[#FFFFFF] text-[14px] text-[#212325] font-normal py-2 px-[14px] rounded-[10px] border-r-[16px] border-[transparent] cursor-pointer"
+        onChange={(e) => setBulkAction(e.target.value)}
+        value={bulkAction}>
+        <option disabled value="">
+          Bulk action
+        </option>
+        <option value="delete">Delete users</option>
+      </select>
+      <button
+        disabled={bulkAction === ""}
+        className={`ml-2 py-[12px] px-[22px] w-[170px] h-[48px] rounded-[10px] text-[16px] font-medium ${
+          bulkAction === "" || selectedUsers.length === 0 ? "bg-[#ddd] text-[#666]" : "bg-[#0560FD] text-[#fff]"
+        }`}
+        onClick={applyBulkAction}>
+        Apply
+      </button>
     </div>
   );
 };
@@ -210,11 +263,11 @@ const FilterStatus = ({ filter, setFilter }) => {
   );
 };
 
-const UserCard = ({ hit, projects }) => {
+const UserCard = ({ connectedUser, hit, projects, updateSelectedUsers }) => {
   const history = useHistory();
+
   return (
-    <div
-      onClick={() => history.push(`/user/${hit._id}`)}
+    <label
       className="flex flex-col bg-white hover:-translate-y-1 transition duration-100 shadow-sm ease-in cursor-pointer  relative rounded-[16px] pb-4 overflow-hidden">
       <div className="relative flex items-start justify-center pt-6 pb-2">
         <div className="absolute top-0 left-0 w-full h-full z-10 overflow-hidden">
@@ -232,16 +285,10 @@ const UserCard = ({ hit, projects }) => {
             <p className="text-white text-[12px] uppercase tracking-wider">{hit.availability}</p>
           </div>
         </div>
-        <div className="absolute  right-6">
-          <svg width="16" height="4" viewBox="0 0 16 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M2.16659 2.00065L2.17492 2.00065M7.99992 2.00065L8.00825 2.00065M13.8333 2.00065L13.8416 2.00065M2.99992 2.00065C2.99992 2.22166 2.91212 2.43363 2.75584 2.58991C2.59956 2.74619 2.3876 2.83398 2.16659 2.83398C1.94557 2.83398 1.73361 2.74619 1.57733 2.58991C1.42105 2.43363 1.33325 2.22167 1.33325 2.00065C1.33325 1.77964 1.42105 1.56768 1.57733 1.4114C1.73361 1.25512 1.94557 1.16732 2.16659 1.16732C2.3876 1.16732 2.59956 1.25512 2.75584 1.4114C2.91212 1.56768 2.99992 1.77964 2.99992 2.00065ZM8.83325 2.00065C8.83325 2.22166 8.74545 2.43363 8.58917 2.58991C8.43289 2.74619 8.22093 2.83398 7.99992 2.83398C7.7789 2.83398 7.56694 2.74619 7.41066 2.58991C7.25438 2.43363 7.16659 2.22166 7.16659 2.00065C7.16659 1.77964 7.25438 1.56768 7.41066 1.4114C7.56694 1.25512 7.7789 1.16732 7.99992 1.16732C8.22093 1.16732 8.43289 1.25512 8.58917 1.4114C8.74545 1.56768 8.83325 1.77964 8.83325 2.00065ZM14.6666 2.00065C14.6666 2.22166 14.5788 2.43363 14.4225 2.58991C14.2662 2.74619 14.0543 2.83398 13.8333 2.83398C13.6122 2.83398 13.4003 2.74619 13.244 2.58991C13.0877 2.43363 12.9999 2.22166 12.9999 2.00065C12.9999 1.77964 13.0877 1.56768 13.244 1.4114C13.4003 1.25512 13.6122 1.16732 13.8333 1.16732C14.0543 1.16732 14.2662 1.25512 14.4225 1.4114C14.5788 1.56768 14.6666 1.77964 14.6666 2.00065Z"
-              stroke="#212325"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        <div className="absolute right-6 z-20">
+          {connectedUser._id !== hit._id &&
+            <input type="checkbox" id={hit._id} onChange={updateSelectedUsers} />
+          }
         </div>
       </div>
       {/* infos */}
@@ -250,7 +297,12 @@ const UserCard = ({ hit, projects }) => {
           <p className="font-semibold text-lg">{hit.name}</p>
         </div>
       </div>
-    </div>
+      <button
+        className="mx-auto bg-[#0560FD] text-[#fff] py-[12px] px-[22px] w-[140px] h-[48px] rounded-[10px] text-[14px] font-medium"
+        onClick={() => history.push(`/user/${hit._id}`)}>
+        Edit user
+      </button>
+    </label>
   );
 };
 
